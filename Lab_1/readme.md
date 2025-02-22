@@ -4,6 +4,8 @@
 
 This document provides a detailed description of the UML Class Diagram for a **Fingerprint Biometric Authentication System**. The diagram models the core components and their interactions required to perform user authentication based on fingerprint data.
 
+![Class diagram](Lab_1\Class_Diagram.svg)
+
 ## Overview
 
 The class diagram outlines the primary elements involved in the system:
