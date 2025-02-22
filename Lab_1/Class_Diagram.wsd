@@ -1,0 +1,35 @@
+@startuml
+' Диаграмма классов для системы биометрической авторизации по отпечатку пальцев
+
+class FingerprintSensor {
+    +scanFingerprint() : FingerprintTemplate
+}
+
+class FingerprintTemplate {
+    -data: byte[]
+    +compare(template: FingerprintTemplate) : boolean
+}
+
+class User {
+    -id: int
+    -name: String
+    -fingerprint: FingerprintTemplate
+    +getFingerprint() : FingerprintTemplate
+}
+
+class AuthenticationManager {
+    +registerUser(user: User) : void
+    +authenticate(template: FingerprintTemplate) : User
+}
+
+class FingerprintDatabase {
+    -users: List<User>
+    +findUserByFingerprint(template: FingerprintTemplate) : User
+}
+
+FingerprintSensor --> FingerprintTemplate : создает
+User --> FingerprintTemplate : хранит
+AuthenticationManager --> FingerprintDatabase : использует
+FingerprintDatabase "1" o-- "*" User : содержит
+
+@enduml
