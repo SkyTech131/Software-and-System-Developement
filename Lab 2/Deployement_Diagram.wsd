@@ -1,0 +1,21 @@
+@startuml
+' Deployment Diagram for Fingerprint Biometric Authentication System
+
+node "Client Device" as client {
+    component "Fingerprint Scanning Module" as scanner
+}
+
+node "Application Server" as appServer {
+    component "Authentication Service" as authService
+    component "Biometric Processing Module" as processor
+    component "User Management Module" as userMgmt
+}
+
+node "Database Server" as dbServer {
+    database "User Database" as database
+}
+
+client --> appServer : Sends fingerprint data
+appServer --> dbServer : Reads/Writes user data
+
+@enduml
