@@ -40,19 +40,26 @@ user --> UC1
 user --> UC3
 
 admin --> UC4
+admin --> UC2
+admin --> UC4a
+admin --> UC4b
 admin --> UC5
 admin --> UC6
 
 secOfficer --> UC6a
 
 ' --- Relationships Between Use Cases ---
-UC1 --> UC1a : "preprocesses"
-UC1a --> UC1b : "extracts features from"
-UC3 --> UC3a : "matches against templates"
-UC3 --> UC3b : "on failure, triggers"
+' Common fingerprint processing pipeline
+UC1 ..> UC1a : <<include>>
+UC1a ..> UC1b : <<include>>
 
-UC4 --> UC2 : <<include>>
-UC4 --> UC4a : <<include>>
-UC4 --> UC4b : <<include>>
+' Authentication flow
+UC3 ..> UC3a : <<include>>
+UC3b ..> UC3 : <<extend>>
+
+' User Profile Management flow
+UC4 ..> UC2 : <<include>>
+UC4 ..> UC4a : <<include>>
+UC4 ..> UC4b : <<include>>
 
 @enduml
