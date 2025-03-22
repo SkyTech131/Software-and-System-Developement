@@ -1,0 +1,28 @@
+@startuml
+' Updated Component Diagram for Fingerprint Biometric Authentication System with ML Model
+
+skinparam defaultFontName "Arial"
+skinparam defaultFontSize 12
+skinparam componentStyle rectangle
+top to bottom direction
+
+rectangle "Fingerprint Scanning Module" as FSM #lightyellow
+rectangle "API Gateway / Firewall" as APIGW #lightblue
+rectangle "Biometric Processing Module" as BPM #lightblue
+rectangle "ML Model for Fingerprint Matching" as MLModel #lightblue
+rectangle "Authentication Service" as AS #lightgray
+rectangle "User Management Module" as UMM #lightgray
+rectangle "Logging Service" as LS #lightgray
+rectangle "User Database" as UDB #lightgreen
+rectangle "Log Database" as LDB #lightgreen
+
+FSM --> APIGW : Captures fingerprint data
+APIGW --> BPM : Forwards data for processing
+BPM --> MLModel : Generates fingerprint template
+MLModel --> AS : Performs ML inference\n(validates fingerprint)
+AS --> UMM : Manages user information
+AS --> LS : Logs authentication events
+UMM --> UDB : Reads/Writes user profiles
+LS --> LDB : Stores log events
+
+@enduml

@@ -1,0 +1,88 @@
+@startuml
+skinparam state {
+  BackgroundColor LightYellow
+  BorderColor Black
+  FontName Arial
+  FontSize 12
+}
+
+[*] --> Idle
+
+state Idle {
+  note right: System is waiting for user action
+}
+
+' -------- Enrollment Flow (Nested) --------
+state Enrollment {
+  [*] --> WaitingForEnrollment
+  state "Capturing Enrollment" as CE {
+    note right: Admin places user finger on scanner
+  }
+  state "Preprocessing Enrollment" as PE {
+    note right: Enrollment image is preprocessed
+  }
+  state "Feature Extraction Enrollment" as FEE {
+    note right: Enrollment features are extracted
+  }
+  state "Template Generation" as TG {
+    note right: A new fingerprint template is created
+  }
+  WaitingForEnrollment --> CE : "Initiate enrollment"
+  CE --> PE : "Fingerprint captured"
+  PE --> FEE : "Image enhanced"
+  FEE --> TG : "Features extracted"
+  TG --> EnrollmentComplete : "Template generated"
+  EnrollmentComplete --> [*]
+  note right: Enrollment flow adds new user profiles
+}
+
+Idle --> Enrollment : "Admin initiates enrollment"
+
+' -------- Authentication Flow --------
+
+state Authentication {
+    [*] --> WaitingForAuthentication
+
+    state "Capturing Fingerprint" as CF {
+        note right: The fingerprint sensor captures the user's fingerprint
+    }
+    
+    state "Preprocessing Image" as PI {
+        note right: The captured image is enhanced and noise is reduced
+    }
+
+    state "Feature Extraction" as FE {
+        note right: Distinct fingerprint features are extracted
+    }
+
+    state "Fingerprint Matching" as FM {
+        note right: Extracted features are compared\nagainst stored fingerprint templates
+    }
+
+    state Authenticated {
+        note right: Authentication successful
+    }
+    
+    state "Authentication Failed" as AF {
+        note right: No matching fingerprint template found
+    }
+    
+    state "Reattempt Authentication" as RA {
+        note right: User is prompted to try again
+    }
+
+    WaitingForAuthentication --> CF : "Initiate Authentication"
+    CF --> PI : "Fingerprint captured"
+    PI --> FE : "Image preprocessed"
+    FE --> FM : "Features extracted"
+    FM --> Authenticated : "Match found"
+    FM --> AF : "No match found"
+    AF --> RA : "Display error & prompt retry"
+    RA --> CF : "User re-captures fingerprint"
+    Authenticated --> [*]
+}
+
+Idle --> Authentication : "User initiates authentication"
+
+
+@enduml

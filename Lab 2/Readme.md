@@ -1,39 +1,53 @@
 # Fingerprint Biometric Authentication System - UML Diagrams
 
-This document provides a high-level overview of the system architecture through two key UML diagrams: the Component Diagram and the Deployment Diagram. These diagrams are intended to illustrate both the modular structure of the system and its physical deployment in a distributed environment.
+This document provides a high-level overview of the system architecture using two key UML diagrams: the **Component Diagram** and the **Deployment Diagram**. These diagrams illustrate both the modular structure of the system and its physical deployment within a secure and distributed environment.
 
 ## Component Diagram
 
 <p align="center">
-  <img src="Component_Diagram.svg" alt="Class Diagram">
+  <img src="Component_Diagram.svg" alt="Component Diagram">
 </p>
 
-The Component Diagram outlines the major modules within the system and their interactions. Key components include:
+The Component Diagram outlines the primary modules within the system along with their specific functions and interactions:
 
 - **Fingerprint Scanning Module:** Captures raw fingerprint data from the user.
-- **Biometric Processing:** Converts the raw data into a fingerprint template suitable for comparison.
-- **Authentication Service:** Validates the fingerprint template against stored data to authenticate users.
-- **User Management:** Handles user registration and profile management, linking users to their biometric data.
-- **Database:** Stores user profiles, fingerprint templates, and other related information.
+- **API Gateway / Firewall:** Secures incoming requests and forwards them to internal components.
+- **Biometric Processing Module:** Processes raw fingerprint data to generate a usable fingerprint template.
+- **Fingerprint Matcher:** Compares the processed fingerprint template against stored templates to validate identity.
+- **Authentication Service:** Manages the authentication process by coordinating between the matcher and user management, ensuring secure verification.
+- **User Management Module:** Handles user registration and profile management, linking users to their biometric data.
+- **Logging Service:** Records authentication events and system activities for auditing and troubleshooting.
+- **User Database:** Stores user profiles and fingerprint templates.
+- **Log Database:** Stores audit logs and system events securely.
 
-This modular design supports scalability and simplifies maintenance by ensuring each component focuses on a specific aspect of the system’s functionality.
+This modular design supports scalability, maintainability, and enhanced security by clearly separating concerns and isolating sensitive functionalities.
 
 ## Deployment Diagram
 
 <p align="center">
-  <img src="Deployement_Diagram.svg" alt="Class Diagram">
+  <img src="Deployment_Diagram.svg" alt="Deployment Diagram">
 </p>
 
-The Deployment Diagram illustrates how the system’s components are distributed across different hardware nodes. The main nodes are:
+The Deployment Diagram illustrates how the system’s components are physically distributed across different hardware nodes in a top-to-bottom layout:
 
-- **Client Device:** The endpoint where the fingerprint is captured by the Fingerprint Scanning Module.
-- **Application Server:** Hosts the core services, including the Authentication Service, Biometric Processing, and User Management. This server processes the fingerprint data received from client devices.
-- **Database Server:** Dedicated to storing persistent data such as user profiles and fingerprint templates.
+- **Client Device:** The endpoint where fingerprint data is captured via the Fingerprint Scanning Module.
+- **Secure Gateway:** Acts as an entry point that protects and filters incoming requests through the API Gateway / Firewall.
+- **Authentication Server:** Hosts the Authentication Service, which coordinates secure requests and manages user authentication.
+- **Processing Server:** Houses the Biometric Processing Module and Fingerprint Matcher to handle biometric data processing and validation.
+- **User Management Server:** Hosts the User Management Module for handling user data operations.
+- **Logging Server:** Contains the Logging Service, which securely logs system events.
+- **Database Server:** Contains two distinct databases:
+  - **User Database:** For storing user profiles and biometric data.
+  - **Log Database:** For storing audit logs and system events.
 
-In this setup, the Client Device sends captured fingerprint data to the Application Server, which then communicates with the Database Server for data retrieval or updates, ensuring a streamlined and efficient authentication process.
+Secure communication channels (e.g., TLS encryption) are implemented between nodes to protect data in transit. This layered deployment model ensures that sensitive components are isolated, reducing the risk of lateral movement in case of a security breach.
 
 ## Further Considerations
 
-These diagrams serve as a blueprint for designing a robust, scalable fingerprint biometric authentication system. They emphasize the separation of concerns between data capture, processing, authentication, and storage, which facilitates future enhancements such as additional security measures, load balancing, and improved fault tolerance.
+The system architecture emphasizes:
+- **Separation of Concerns:** Isolating scanning, processing, matching, authentication, and logging functionalities.
+- **Enhanced Security:** Implementing secure gateways, encrypted communications, and isolated components.
+- **Scalability:** Enabling independent scaling and maintenance of modular components.
+- **Audit and Compliance:** Utilizing dedicated logging and log storage for robust audit trails and adherence to security standards.
 
-Feel free to adapt and extend these diagrams to better align with your specific project requirements and deployment environment.
+These diagrams serve as a blueprint for designing a robust, secure, and scalable fingerprint biometric authentication system. Feel free to modify and extend these diagrams to align with evolving security policies, project requirements, and infrastructure needs.

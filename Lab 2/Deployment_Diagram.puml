@@ -1,0 +1,46 @@
+@startuml
+skinparam defaultFontName "Arial"
+skinparam defaultFontSize 12
+top to bottom direction
+
+' --- Define Nodes and Their Components (Color-Coded) ---
+node "Client Device" as clientNode #lightyellow {
+    component "Fingerprint Scanning Module" as FSM
+}
+
+node "Secure Gateway" as gatewayNode #lightblue {
+    component "API Gateway / Firewall" as APIGW
+}
+
+node "Authentication Server" as authNode #lightgray {
+    component "Authentication Service" as AuthService
+}
+
+node "Processing Server" as procNode #lightgray {
+    component "Biometric Processing Module" as BPM
+    component "Fingerprint Matcher" as FM
+}
+
+node "User Management Server" as umsNode #lightgray {
+    component "User Management Module" as UMM
+}
+
+node "Logging Server" as logNode #lightgray {
+    component "Logging Service" as LS
+}
+
+node "Database Server" as dbNode #lightgreen {
+    database "User Database" as UDB
+    database "Log Database" as LDB
+}
+
+' --- Define Secure Communications ---
+clientNode --> gatewayNode : Sends fingerprint data (TLS)
+gatewayNode --> authNode : Forwards secure requests
+authNode --> procNode : Delegates biometric processing (secure API)
+authNode --> umsNode : Retrieves/updates user data (secure API)
+authNode --> logNode : Sends audit logs (encrypted)
+umsNode --> dbNode : Reads/Writes user profiles (secure connection)
+logNode --> dbNode : Stores log events (encrypted)
+
+@enduml

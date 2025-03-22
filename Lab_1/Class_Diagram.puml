@@ -1,0 +1,74 @@
+@startuml
+title Class Diagram for Fingerprint-Based User Recognition
+
+' The core system that orchestrates the recognition process
+class RecognitionSystem {
+  - systemID: int
+  - name: String
+  + enrollUser(user: User): void
+  + recognizeUser(fp: Fingerprint): User
+}
+
+' Represents a user with biometric data
+class User {
+  - userID: int
+  - name: String
+  - gender: String
+  + getFingerprints(): List<Fingerprint>
+}
+
+' Represents a fingerprint sample
+class Fingerprint {
+  - fingerprintID: int
+  - image: Image
+  - fingerType: String
+  - hand: String
+  - alterationType: String
+  + process(): void
+}
+
+' Responsible for capturing fingerprint images from a sensor device
+class FingerprintSensor {
+  + capture(): Fingerprint
+}
+
+' Preprocessing routines for image enhancement and normalization
+class Preprocessor {
+  + enhance(image: Image): Image
+  + normalize(image: Image): Image
+}
+
+' Extracts a feature vector from a fingerprint image
+class FeatureExtractor {
+  + extractFeatures(image: Image): FeatureVector
+}
+
+' The neural network model used for training and prediction
+class NeuralNetworkModel {
+  - architecture: String
+  - parameters: Map<String, Object>
+  + train(data: Dataset): void
+  + predict(features: FeatureVector): double[]
+}
+
+' A simple database/repository for storing users and fingerprints
+class Database {
+  + addUser(user: User): void
+  + getUser(userID: int): User
+  + storeFingerprint(fp: Fingerprint): void
+  + getFingerprints(): List<Fingerprint>
+}
+
+' Relationships between the components
+RecognitionSystem --> FingerprintSensor : "uses"
+RecognitionSystem --> Preprocessor : "processes via"
+RecognitionSystem --> FeatureExtractor : "analyzes"
+RecognitionSystem --> NeuralNetworkModel : "predicts with"
+RecognitionSystem --> Database : "stores/queries"
+
+User "1" -- "*" Fingerprint : "owns"
+FingerprintSensor --> Fingerprint : "captures"
+Preprocessor --> Fingerprint : "enhances"
+FeatureExtractor --> Fingerprint : "extracts from"
+NeuralNetworkModel ..> "FeatureVector" : "outputs"
+@enduml
