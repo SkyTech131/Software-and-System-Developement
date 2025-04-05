@@ -1,0 +1,54 @@
+@startuml
+skinparam activity {
+  FontName Arial
+  FontSize 12
+}
+
+start
+:Display Main Menu;
+:Select Option;
+
+fork
+  if (Authentication selected?) then (yes)
+    partition Authentication {
+      :Initialize attempt count = 0;
+      repeat
+        :Capture fingerprint;
+        :Preprocess image;
+        :Extract features;
+        :Match fingerprint with stored templates;
+        if (Match found?) then (yes)
+          :Authenticate user;
+          break
+        else (no)
+          :Increment attempt count;
+          if (attempt count >= MAX_ATTEMPTS) then (yes)
+            :Return authentication failure;
+            stop
+          endif
+          :Prompt user to retry;
+        endif
+      repeat while (attempt count < MAX_ATTEMPTS)
+      :Finish Authentication Process;
+    }
+  else
+    :Skip Authentication;
+  endif
+fork again
+  if (Enrollment selected?) then (yes)
+    partition Enrollment {
+      :Capture fingerprint;
+      :Preprocess image;
+      :Extract features;
+      :Generate fingerprint template;
+      :Store new user in Database;
+      :Confirm enrollment;
+    }
+  else
+    :Skip Enrollment;
+  endif
+end fork
+
+:End process;
+stop
+@enduml

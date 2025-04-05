@@ -1,88 +1,56 @@
 @startuml
-skinparam state {
-  BackgroundColor LightYellow
-  BorderColor Black
-  FontName Arial
-  FontSize 12
-}
-
 [*] --> Idle
 
-state Idle {
-  note right: System is waiting for user action
+state Idle : System is waiting for user action (authentication or enrollment)
+
+' --- Nested Authentication Flow ---
+state "Authentication Process" as Auth {
+  [*] --> Capturing
+  state Capturing : The sensor captures the user's fingerprint
+  Capturing --> Preprocessing : Fingerprint captured
+  state Preprocessing : Enhance image and reduce noise
+  Preprocessing --> FeatureExtraction : Image preprocessed
+  state FeatureExtraction : Extract features from the fingerprint image
+  FeatureExtraction --> Matching : Features extracted
+  state Matching : Compare features against stored templates
+  Matching --> Authenticated : Match found
+  Matching --> Failed : No match found
+  
+  state Authenticated : User authenticated successfully
+  state Failed : Authentication failed; no matching template found
+  
+  ' Branching from Failed based on attempt count
+  Failed --> Retry : Attempts < MAX_ATTEMPTS
+  Failed --> AuthFailure : Attempts = MAX_ATTEMPTS
+  
+  state Retry : User reattempts fingerprint capture
+  Retry --> Capturing : Retry authentication
+  
+  state AuthFailure : Permanent authentication failure
+  
+  Authenticated --> [*]
+  AuthFailure --> [*]
 }
 
-' -------- Enrollment Flow (Nested) --------
+' --- Nested Enrollment Flow ---
 state Enrollment {
-  [*] --> WaitingForEnrollment
-  state "Capturing Enrollment" as CE {
-    note right: Admin places user finger on scanner
-  }
-  state "Preprocessing Enrollment" as PE {
-    note right: Enrollment image is preprocessed
-  }
-  state "Feature Extraction Enrollment" as FEE {
-    note right: Enrollment features are extracted
-  }
-  state "Template Generation" as TG {
-    note right: A new fingerprint template is created
-  }
-  WaitingForEnrollment --> CE : "Initiate enrollment"
-  CE --> PE : "Fingerprint captured"
-  PE --> FEE : "Image enhanced"
-  FEE --> TG : "Features extracted"
-  TG --> EnrollmentComplete : "Template generated"
+  [*] --> Waiting
+  state Waiting : Waiting for enrollment initiation by admin
+  Waiting --> CapturingEnr : Initiate enrollment
+  state CapturingEnr : Admin places user finger on scanner
+  CapturingEnr --> PreprocessingEnr : Fingerprint captured
+  state PreprocessingEnr : Enhance enrollment image
+  PreprocessingEnr --> FeatureExtractionEnr : Image preprocessed
+  state FeatureExtractionEnr : Extract features for enrollment
+  FeatureExtractionEnr --> TemplateGeneration : Features extracted
+  state TemplateGeneration : Generate a new fingerprint template for user enrollment
+  TemplateGeneration --> EnrollmentComplete : Template generated
+  state EnrollmentComplete : Enrollment completed successfully
   EnrollmentComplete --> [*]
-  note right: Enrollment flow adds new user profiles
 }
 
-Idle --> Enrollment : "Admin initiates enrollment"
-
-' -------- Authentication Flow --------
-
-state Authentication {
-    [*] --> WaitingForAuthentication
-
-    state "Capturing Fingerprint" as CF {
-        note right: The fingerprint sensor captures the user's fingerprint
-    }
-    
-    state "Preprocessing Image" as PI {
-        note right: The captured image is enhanced and noise is reduced
-    }
-
-    state "Feature Extraction" as FE {
-        note right: Distinct fingerprint features are extracted
-    }
-
-    state "Fingerprint Matching" as FM {
-        note right: Extracted features are compared\nagainst stored fingerprint templates
-    }
-
-    state Authenticated {
-        note right: Authentication successful
-    }
-    
-    state "Authentication Failed" as AF {
-        note right: No matching fingerprint template found
-    }
-    
-    state "Reattempt Authentication" as RA {
-        note right: User is prompted to try again
-    }
-
-    WaitingForAuthentication --> CF : "Initiate Authentication"
-    CF --> PI : "Fingerprint captured"
-    PI --> FE : "Image preprocessed"
-    FE --> FM : "Features extracted"
-    FM --> Authenticated : "Match found"
-    FM --> AF : "No match found"
-    AF --> RA : "Display error & prompt retry"
-    RA --> CF : "User re-captures fingerprint"
-    Authenticated --> [*]
-}
-
-Idle --> Authentication : "User initiates authentication"
-
+' --- Transitions from Idle ---
+Idle --> Auth : User initiates authentication
+Idle --> Enrollment : Admin initiates enrollment
 
 @enduml
