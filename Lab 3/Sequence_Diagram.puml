@@ -1,51 +1,57 @@
 @startuml
-title Sequence Diagram for Fingerprint-Based User Recognition with Detailed Logging and Limited Attempts
+actor "Administrator" as Admin
+actor "User" as User
 
-actor User
-participant "RecognitionSystem" as RS
-participant "FingerprintSensor" as FS
-participant "Preprocessor" as PP
-participant "FeatureExtractor" as FE
-participant "NeuralNetworkModel" as NN
+participant "System" as System
+participant "Fingerprint Sensor" as Sensor
+participant "Preprocessor" as Preproc
+participant "Feature Extractor" as Extractor
+participant "Template Generator" as TemplateGen
+participant "Fingerprint Matcher" as Matcher
 participant "Database" as DB
-participant "Logger" as LG
+participant "Logger" as Log
 
-User -> RS: Initiate authentication
-RS -> LG: Log "Authentication started"
+' The system begins by asking the user to select an operation
+User -> System : Select Operation (Enrollment / Authentication)
 
-loop While (attempt count < MAX_ATTEMPTS)
-  RS -> FS: Capture fingerprint
-  FS -> RS: Return Fingerprint object
-  RS -> LG: Log "Fingerprint captured"
-  
-  RS -> PP: Preprocess fingerprint image
-  PP -> RS: Return enhanced image
-  RS -> LG: Log "Image preprocessed"
-  
-  RS -> FE: Extract features from image
-  FE -> RS: Return feature vector
-  RS -> LG: Log "Features extracted"
-  
-  RS -> NN: Predict match (feature vector)
-  NN -> RS: Return matching score
-  RS -> LG: Log "Neural network returned score"
-  
-  RS -> DB: Query user by fingerprint (score)
-  alt Match found
-    DB -> RS: Return user profile
-    RS -> LG: Log "User authenticated"
-    RS -> User: Return authentication result (success)
-    break
-  else No match
-    RS -> LG: Log "No match found"
-    RS -> User: Prompt to retry
-    RS -> LG: Log "Retry prompted"
-  end
+alt Enrollment Flow
+  ' Enrollment initiated by the administrator
+  Admin -> System : Initiate Enrollment
+  System -> User : Request fingerprint scan for enrollment
+  User -> Sensor : Capture fingerprint
+  Sensor -> System : Return raw fingerprint data
+  System -> Preproc : Enhance & normalize image
+  Preproc -> System : Return processed image
+  System -> Extractor : Extract fingerprint features
+  Extractor -> System : Return feature vector
+  System -> TemplateGen : Generate fingerprint template
+  TemplateGen -> System : Return fingerprint template
+  System -> DB : Add new user profile with template
+  DB -> System : Confirmation
+  System -> Log : Log enrollment event
+  System -> Admin : Enrollment successful
+  System -> User : Enrollment successful
 end
 
-alt (attempt count >= MAX_ATTEMPTS and no match)
-  RS -> LG: Log "Authentication failed: Maximum attempts reached"
-  RS -> User: Return authentication failure
+alt Authentication Flow
+  System -> User : Request fingerprint scan for authentication
+  User -> Sensor : Capture fingerprint
+  Sensor -> System : Return raw fingerprint data
+  System -> Preproc : Enhance & normalize image
+  Preproc -> System : Return processed image
+  System -> Extractor : Extract fingerprint features
+  Extractor -> System : Return feature vector
+  System -> Matcher : Compare features with stored templates
+  Matcher -> System : Return matching result
+  alt Match Found
+    System -> DB : Retrieve matching user profile
+    DB -> System : Return user profile
+    System -> Log : Log successful authentication event
+    System -> User : Authentication successful
+  else No Match Found
+    System -> Log : Log failed authentication event
+    System -> User : Authentication failed, please try again
+  end
 end
 
 @enduml
