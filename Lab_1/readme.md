@@ -1,107 +1,120 @@
 <div id="header" align="center">
-  <h1>UML Class Diagram for Fingerprint Biometric Authentication System</h1>
+  <h1>UML Class Diagram for Fingerprint-Based User Recognition</h1>
 </div>
 
-This document provides a detailed description of the UML Class Diagram for a <strong>Fingerprint Biometric Authentication System</strong>. The diagram models the core components and their interactions required to perform user authentication based on fingerprint data, and now explicitly incorporates the use of a Siamese network as the ML model for fingerprint matching.
+This document provides a detailed description of the UML Class Diagram for a <strong>Fingerprint-Based User Recognition System</strong>. The diagram models the core components and their interactions required to enroll and recognize users based on fingerprint data, incorporating key modules for capturing, processing, and matching fingerprints.
 
 <img src="Class_Diagram.svg" alt="Class Diagram">
 
 ## Overview
 
-The class diagram outlines the primary elements involved in the system, including the fingerprint capturing process, template creation, user data management, authentication handling, and database storage. It also introduces specialized components for matching fingerprints via a trained Siamese network model and logging events. This diagram is designed to clearly show the responsibilities and relationships between each class.
+The class diagram captures the end-to-end workflow of fingerprint-based recognition by illustrating how each component collaborates within the system:
+
+1. **Fingerprint Acquisition** – The **FingerprintSensor** interfaces with scanning hardware to capture raw fingerprint images, ensuring accurate data collection at the front end.  
+2. **Image Processing Pipeline** – Captured images flow through the **Preprocessor**, which enhances and normalizes them, and then through the **FeatureExtractor**, which distills each image into a concise **FeatureVector** representation.  
+3. **Matching and Recognition** – A configurable **NeuralNetworkModel** (e.g., a Siamese network) receives feature vectors, performs similarity comparisons, and returns confidence scores used by the **RecognitionSystem** to identify or reject a user.  
+4. **User Management** – The **RecognitionSystem** orchestrates both enrollment—adding new **User** instances and their **Fingerprint** templates to the **Database**—and recognition—querying stored templates to match incoming samples.  
+5. **Persistence and Logging** – All user profiles and fingerprint records reside in the **Database**, while a **Logger** component captures authentication and enrollment events for auditability and troubleshooting.  
+
+By clearly delineating each class’s responsibility—from hardware interaction to machine learning inference and data persistence—this diagram ensures a modular, maintainable, and extensible design for robust biometric authentication.
 
 ## Class Descriptions
 
-### FingerprintSensor
+### RecognitionSystem
 
-This class is responsible for interfacing with the fingerprint scanner hardware. It scans a user's fingerprint and returns a corresponding fingerprint template.
+The central orchestrator that manages both enrollment and recognition workflows.
 
-**Key Method:**
-- `scanFingerprint() : FingerprintTemplate` – Initiates the scanning process and produces a fingerprint template.
+**Attributes:**  
+- `systemID: int` – Unique system identifier  
+- `name: String` – System name  
 
-### FingerprintTemplate
-
-Encapsulates the raw data of a fingerprint. This class provides functionality to compare one fingerprint template with another to determine a match.
-
-**Attributes:**
-- `data: byte[]` – Stores the fingerprint data.
-
-**Key Method:**
-- `compare(template: FingerprintTemplate) : boolean` – Compares the current fingerprint template with another and returns a boolean indicating similarity.
+**Key Methods:**  
+- `enrollUser(user: User): void` – Enrolls a new user’s fingerprint  
+- `recognizeUser(fp: Fingerprint): User` – Matches a fingerprint to a user  
 
 ### User
 
-Represents a user in the system. Each user has a unique identifier, a name, and a fingerprint template linked to their biometric data.
+Represents an individual in the system, holding personal and biometric data.
 
-**Attributes:**
-- `id: int` – A unique identifier for the user.
-- `name: String` – The user's name.
-- `fingerprint: FingerprintTemplate` – The user's fingerprint template.
+**Attributes:**  
+- `userID: int` – Unique user identifier  
+- `name: String` – User’s name  
+- `gender: String` – User’s gender  
 
-**Key Methods:**
-- `getFingerprint() : FingerprintTemplate` – Retrieves the user's fingerprint template.
-- `updateFingerprint(template: FingerprintTemplate) : void` – Updates the stored fingerprint template with new data.
+**Key Method:**  
+- `getFingerprints(): List<Fingerprint>` – Returns all fingerprint samples for this user  
 
-### AuthenticationManager
+### Fingerprint
 
-This component handles both user registration and the authentication process by validating fingerprint data against stored records.
+Encapsulates a single fingerprint sample and its metadata.
 
-**Key Methods:**
-- `registerUser(user: User) : void` – Registers a new user into the system.
-- `authenticate(template: FingerprintTemplate) : User` – Authenticates a user by comparing the provided fingerprint template with stored data.
-- `logEvent(event: String) : void` – Records events related to authentication activities.
+**Attributes:**  
+- `fingerprintID: int` – Unique fingerprint sample ID  
+- `image: Image` – Raw fingerprint image  
+- `fingerType: String` – e.g., “thumb”, “index”  
+- `hand: String` – “Left” or “Right”  
+- `alterationType: String` – e.g., “raw”, “enhanced”  
 
-### FingerprintDatabase
+**Key Method:**  
+- `process(): void` – Applies any per‑sample processing steps  
 
-Acts as the system’s storage for user data. It maintains a collection of users and provides functionality to search for a user by their fingerprint.
+### FingerprintSensor
 
-**Attributes:**
-- `users: List<User>` – A list containing all registered users.
+Interfaces with the physical scanner to capture raw fingerprint data.
 
-**Key Methods:**
-- `findUserByFingerprint(template: FingerprintTemplate) : User` – Searches and returns a user matching the provided fingerprint template.
-- `addUser(user: User) : void` – Adds a new user to the database.
+**Key Method:**  
+- `capture(): Fingerprint` – Reads a fingerprint and returns a `Fingerprint` object  
 
-### Additional Components
+### Preprocessor
 
-#### FingerprintMatcher (Abstract Class)
+Performs image enhancement and normalization on captured fingerprints.
 
-Defines the interface for fingerprint matching algorithms. It ensures that any fingerprint matcher implementation provides a method to compare two fingerprint templates.
+**Key Methods:**  
+- `enhance(image: Image): Image` – Improves image clarity  
+- `normalize(image: Image): Image` – Standardizes image format  
 
-**Key Method:**
-- `match(template1: FingerprintTemplate, template2: FingerprintTemplate) : boolean` – Determines if two fingerprint templates match.
+### FeatureExtractor
 
-#### SiameseFingerprintMatcher
+Extracts a numerical feature vector from a preprocessed fingerprint image.
 
-A concrete implementation of the `FingerprintMatcher` that represents a trained Siamese network model. This class handles training, updating, and performing inference to determine fingerprint similarity.
+**Key Method:**  
+- `extractFeatures(image: Image): FeatureVector` – Returns the fingerprint’s feature vector  
 
-**Key Methods:**
-- `train(trainingData: List<FingerprintTemplate>) : void` – Trains the Siamese model using provided fingerprint templates.
-- `updateModel(newData: List<FingerprintTemplate>) : void` – Updates the model with new fingerprint data.
-- `predict(template: FingerprintTemplate) : boolean` – Uses the trained model to predict if two fingerprints match.
+### NeuralNetworkModel
 
-#### Logger
+Represents the ML model used to compare feature vectors for recognition.
 
-Handles logging of various events within the system. It provides a simple interface to record system events, errors, and other significant actions.
+**Attributes:**  
+- `architecture: String` – Model architecture description  
+- `parameters: Map<String, Object>` – Hyperparameters and learned weights  
 
-**Key Method:**
-- `log(message: String) : void` – Logs the given message.
+**Key Methods:**  
+- `train(data: Dataset): void` – Trains the model on labeled data  
+- `predict(features: FeatureVector): double[]` – Outputs similarity scores or classification  
 
-### Specialized Fingerprint Sensors
+### Database
 
-To support various hardware, the diagram includes specialized fingerprint sensor classes that inherit from `FingerprintSensor`:
+Stores users and fingerprint records, providing query capabilities.
 
-- **OpticalFingerprintSensor:** Uses optical scanning technology.
-- **CapacitiveFingerprintSensor:** Uses capacitive scanning technology.
+**Key Methods:**  
+- `addUser(user: User): void` – Registers a new user  
+- `getUser(userID: int): User` – Retrieves a user by ID  
+- `storeFingerprint(fp: Fingerprint): void` – Saves a fingerprint sample  
+- `getFingerprints(): List<Fingerprint>` – Retrieves all stored fingerprints  
 
 ## Class Relationships
 
-- **FingerprintSensor** creates a **FingerprintTemplate** during the scanning process.
-- **User** objects store an associated **FingerprintTemplate**.
-- **AuthenticationManager** utilizes **FingerprintDatabase** to validate users during authentication and logs events through **Logger**.
-- **AuthenticationManager** leverages **FingerprintMatcher** (implemented as `SiameseFingerprintMatcher`) to perform fingerprint comparisons.
-- **FingerprintDatabase** maintains a collection of **User** objects, mapping each user to their biometric data.
+- **RecognitionSystem** → **FingerprintSensor** : “uses”  
+- **RecognitionSystem** → **Preprocessor** : “processes via”  
+- **RecognitionSystem** → **FeatureExtractor** : “analyzes”  
+- **RecognitionSystem** → **NeuralNetworkModel** : “predicts with”  
+- **RecognitionSystem** → **Database** : “stores/queries”  
+- **User** “1” — “*” **Fingerprint** : “owns”  
+- **FingerprintSensor** → **Fingerprint** : “captures”  
+- **Preprocessor** → **Fingerprint** : “enhances”  
+- **FeatureExtractor** → **Fingerprint** : “extracts from”  
+- **NeuralNetworkModel** ..> **FeatureVector** : “outputs”  
 
 ## Conclusion
 
-This UML Class Diagram provides a comprehensive model for a Fingerprint Biometric Authentication System. The diagram captures both the high-level interactions and the detailed responsibilities of each component, including the incorporation of a trained Siamese network for fingerprint matching. This structure supports scalability and maintainability, which are critical for systems that handle sensitive biometric data.
+This UML Class Diagram captures the end‑to‑end flow for enrolling and recognizing users via fingerprint biometrics. Each component’s responsibility and interactions are clearly defined, supporting a modular, maintainable, and extensible design.
